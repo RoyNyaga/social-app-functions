@@ -15,7 +15,15 @@ const {
   unlikeScream,
   deleteScream
 } = require('./handlers/screams')
-const { signup, login, uploadImage, addUserDetails, getAuthenticatedUser } = require('./handlers/users')
+const {
+  signup,
+  login,
+  uploadImage,
+  addUserDetails,
+  getAuthenticatedUser,
+  getUserDetails
+  // markNotificationsRead
+} = require('./handlers/users')
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -38,63 +46,65 @@ app.post('/login', login)
 app.post('/user/image', FBAuth, uploadImage)
 app.post('/user', FBAuth, addUserDetails)
 app.get('/user', FBAuth, getAuthenticatedUser)
+app.get('/user/:handle', getUserDetails)
+// app.post('/notifications', FBAuth, markNotificationsRead)
 
 exports.api = functions.https.onRequest(app)
 
-exports.createNotificationOnlike = functions.firestore.document('likes/{id}')
+exports.createNotificationOnlike = functions.region('us-central1').firestore.document('likes/{id}')
   .onCreate((snapshot) => {
-  	db.document(`/screams/${snapshot.data().screamId}`).get()
-  	.then(doc => {
-  		if (doc.exists) {
-  			return db.doc(`/notifications/${snapshot.id}`).set({
-  				createdAt: new Date().toISOString(),
-  				recipient: doc.data().userHandle,
-  				sender: snapshot.data().userHandle,
-  				type: 'like',
-  				read: false,
-  				screamid: doc.id
-  			})
-  		}
-  	})
-  	.then(() => {
+    db.doc(`/screams/${snapshot.data().screamId}`).get()
+      .then(doc => {
+        if (doc.exists) {
+          return db.doc(`/notifications/${snapshot.id}`).set({
+            createdAt: new Date().toISOString(),
+            recipient: doc.data().userHandle,
+            sender: snapshot.data().userHandle,
+            type: 'like',
+            read: false,
+            screamId: doc.id
+          })
+        }
+      })
+      .then(() => {
 
-  	})
-  	.catch(err => {
-  		console.error(err)
-  	})
+      })
+      .catch(err => {
+        console.error(err)
+      })
   })
 
-exports.deleteNotificationOnUnlike = functions.firebase.document('likes/{id}')
+exports.deleteNotificationOnUnlike = functions.region('us-central1').firestore.document('likes/{id}')
   .onDelete((snapshot) => {
-  	db.doc(`/notifications/${snapshot.id}`)
-  	.delete()
-  	.then(() => {
+    db.doc(`/notifications/${snapshot.id}`)
+      .delete()
+      .then(() => {
 
-  	})
-  	.catch(err => {
-  		console.error(err)
-  	})
+      })
+      .catch(err => {
+        console.error(err)
+      })
   })
 
-exports.createNotificationOnComment = functions.firebase.document('comments/{id}')
+exports.createNotificationOnComment = functions.region('us-central1').firestore.document('comments/{id}')
   .onCreate((snapshot) => {
-  	db.document(`/screams/${snapshot.data().screamId}`).get()
-  	.then(doc => {
-  		if (doc.exists) {
-  			return db.doc(`/notifications/${snapshot.id}`).set({
-  				createdAt: new Date().toISOString(),
-  				recipient: doc.data().userHandle,
-  				sender: snapshot.data().userHandle,
-  				type: 'comment',
-  				read: false,
-  				screamid: doc.id
-  			})
-  		}
-  	})
-  	.then(() => {
+    db.doc(`/screams/${snapshot.data().screamId}`).get()
+      .then(doc => {
+        if (doc.exists) {
+          return db.doc(`/notifications/${snapshot.id}`).set({
+            createdAt: new Date().toISOString(),
+            recipient: doc.data().userHandle,
+            sender: snapshot.data().userHandle,
+            type: 'comment',
+            read: false,
+            screamid: doc.id
+          })
+        }
+      })
+      .then(() => {
 
-  	})
-  	.catch(err => {
-  		console.error(err)
-  	})
+      })
+      .catch(err => {
+        console.error(err)
+      })
   })
